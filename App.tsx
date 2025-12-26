@@ -18,10 +18,8 @@ const getFirebaseServices = async () => {
         const auth = await import('https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js');
         const firestore = await import('https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js');
 
-        const configStr = (typeof __firebase_config !== 'undefined') ? __firebase_config : null;
-        const firebaseConfig = configStr ? JSON.parse(configStr) : null;
-
-        if (!firebaseConfig) {
+        const configStr = (typeof FIREBASE_CONFIG !== 'undefined') ? FIREBASE_CONFIG : null;
+        
             console.warn("Firebase config not found. App will run in a disconnected state.");
             return null;
         }
