@@ -1,6 +1,6 @@
 import React from 'react';
 
-declare global {
+declare module 'react' {
     namespace JSX {
         interface IntrinsicElements {
             'dotlottie-wc': React.DetailedHTMLProps<React.HTMLAttributes<HTMLElement>, HTMLElement> & {
@@ -9,6 +9,15 @@ declare global {
                 loop?: boolean;
                 mode?: string;
             };
+        }
+    }
+}
+
+declare global {
+    // Augment NodeJS ProcessEnv to include API_KEY if process exists
+    namespace NodeJS {
+        interface ProcessEnv {
+            API_KEY?: string;
         }
     }
 
