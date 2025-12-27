@@ -6,20 +6,22 @@ import {
     LanguageSelectScreen, OnboardingScreen, HomeScreen, ExtraModeScreen, SimpleModeScreen,
     AITranslatorScreen, NotesListScreen, ContentViewerScreen, PdfSelectScreen, PdfViewerScreen, ThemeSettingsScreen
 } from './components/Screens';
-import type { User } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js';
-import type { Firestore, DocumentReference, DocumentSnapshot } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js';
+import type { User } from 'firebase/auth';
+import type { Firestore, DocumentReference, DocumentSnapshot } from 'firebase/firestore';
 
 
 // --- Firebase Initialization ---
 
 const getFirebaseServices = async () => {
     try {
-        const firebase = await import('https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js');
-        const auth = await import('https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js');
-        const firestore = await import('https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js');
+        const firebase = await import('firebase/app');
+        const auth = await import('firebase/auth');
+        const firestore = await import('firebase/firestore');
 
-        const configStr = (typeof FIREBASE_CONFIG !== 'undefined') ? FIREBASE_CONFIG : null;
-        
+        const configStr = (typeof __firebase_config !== 'undefined') ? __firebase_config : null;
+        const firebaseConfig = configStr ? JSON.parse(configStr) : null;
+
+        if (!firebaseConfig) {
             console.warn("Firebase config not found. App will run in a disconnected state.");
             return null;
         }
@@ -333,7 +335,7 @@ export default function App() {
         const props = { changeScreen, t, lang };
         let Component = null;
         switch (screen) {
-            case Screen.LanguageSelect: Component = <LanguageSelectScreen onConfirm={handleLanguageConfirm} userId={userId} />; break;
+            case Screen.LanguageSelect: Component = <LanguageSelectScreen onConfirm={handleLanguageConfirm} userId={userId} changeScreen={changeScreen} />; break;
             case Screen.Onboarding: Component = <OnboardingScreen {...props} onComplete={handleOnboardingComplete} />; break;
             case Screen.Home: Component = <HomeScreen {...props} username={userProfile?.username || null} appOpens={appOpens} theme={theme} toggleTheme={toggleTheme} onSimpleModeClick={handleSimpleModeClick} />; break;
             case Screen.ExtraMode: Component = <ExtraModeScreen {...props} />; break;

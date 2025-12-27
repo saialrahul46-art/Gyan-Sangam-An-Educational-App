@@ -1,8 +1,4 @@
 
-
-
-
-
 import React, { useState, useCallback, useMemo, useRef, useEffect } from 'react';
 import { Screen, Content, Kavita, PdfViewerState, UserProfile, TranslationHistoryItem } from '../types';
 import {
@@ -450,10 +446,10 @@ export const ExtraModeScreen: React.FC<ScreenProps> = ({ changeScreen, t, lang }
         <p className="text-gray-700 dark:text-gray-300 mb-4">💡 {t('purpose_1')}</p>
         <p className="text-gray-700 dark:text-gray-300 mb-6 font-semibold">👉 {t('purpose_2')}</p>
         <div className="mt-4 space-y-2">
-            {Object.entries(subjects).map(([en, hi]) => (
+            {Object.entries(subjects).map(([en, localizedName]) => (
                 <button key={en} onClick={() => changeScreen(Screen.NotesList, { subject: en })} className="w-full p-3 bg-white border border-blue-400 text-blue-700 font-semibold rounded-lg shadow transition hover:bg-blue-50 dark:bg-gray-700 dark:border-blue-700 dark:text-blue-300 dark:hover:bg-gray-600 flex items-center gap-3">
                      <span className="text-2xl">{subjectEmojis[en] || '📘'}</span>
-                     <span className="flex-grow text-left">{lang === 'hi' ? hi : en} {t('subject_class')}</span>
+                     <span className="flex-grow text-left">{(lang === 'hi' || lang === 'mr') ? localizedName : en} {t('subject_class')}</span>
                      <span className="text-gray-400">›</span>
                 </button>
             ))}
@@ -683,8 +679,12 @@ export const AITranslatorScreen: React.FC<ScreenProps> = ({ changeScreen, t }) =
 interface NotesListProps extends ScreenProps { data: { subject: string }; }
 
 export const NotesListScreen: React.FC<NotesListProps> = ({ changeScreen, t, data, lang }) => {
+    // BUG FIX: data might be null due to race condition or improper navigation state.
+    if (!data) return null;
+    
     const subject = data.subject;
-    const subjectName = lang === 'hi' ? subjects[subject] : subject;
+    // Enhanced localization: Show Hindi name if lang is 'hi' OR 'mr' (Marathi uses same script/names often for these subjects)
+    const subjectName = (lang === 'hi' || lang === 'mr') ? subjects[subject] : subject;
 
     const handleKavitaClick = (kavita: Kavita) => {
         changeScreen(Screen.ContentViewer, {
@@ -729,26 +729,34 @@ export const NotesListScreen: React.FC<NotesListProps> = ({ changeScreen, t, dat
 
 interface ContentViewerProps extends ScreenProps { data: { content: Content, subject: string }; }
 
-export const ContentViewerScreen: React.FC<ContentViewerProps> = ({ changeScreen, t, data }) => (
-    <div className="w-full flex-grow flex flex-col bg-gray-50 text-gray-900"> {/* Force Light BG */}
-         <div className="p-4 flex-shrink-0">
-            <button onClick={() => changeScreen(Screen.NotesList, { subject: data.subject })} aria-label="Go back" className="mb-4 text-blue-600 hover:text-blue-800 font-semibold flex items-center self-start">
-                <BackIcon /> {t('back')}
-            </button>
-            <h2 className="text-xl font-bold text-gray-900 mb-4">{data.content.title}</h2>
-         </div>
-         <div className="flex-grow p-4 pt-0 overflow-hidden flex flex-col">
-            <div className="p-6 bg-white border border-gray-200 shadow-sm rounded-lg h-full custom-scroll overflow-y-auto text-gray-900">
-                <pre className="whitespace-pre-wrap leading-relaxed font-sans text-base">{data.content.text}</pre>
-                <p className="mt-6 text-xs text-red-600 font-medium border-t pt-2 border-gray-100">⚠️ {t('content_area_warning')}</p>
-            </div>
-         </div>
-    </div>
-);
+export const ContentViewerScreen: React.FC<ContentViewerProps> = ({ changeScreen, t, data }) => {
+    // BUG FIX: Ensure data and content exist before rendering.
+    if (!data || !data.content) return null;
+    
+    return (
+        <div className="w-full flex-grow flex flex-col bg-gray-50 text-gray-900"> {/* Force Light BG */}
+             <div className="p-4 flex-shrink-0">
+                <button onClick={() => changeScreen(Screen.NotesList, { subject: data.subject })} aria-label="Go back" className="mb-4 text-blue-600 hover:text-blue-800 font-semibold flex items-center self-start">
+                    <BackIcon /> {t('back')}
+                </button>
+                <h2 className="text-xl font-bold text-gray-900 mb-4">{data.content.title}</h2>
+             </div>
+             <div className="flex-grow p-4 pt-0 overflow-hidden flex flex-col">
+                <div className="p-6 bg-white border border-gray-200 shadow-sm rounded-lg h-full custom-scroll overflow-y-auto text-gray-900">
+                    <pre className="whitespace-pre-wrap leading-relaxed font-sans text-base">{data.content.text}</pre>
+                    <p className="mt-6 text-xs text-red-600 font-medium border-t pt-2 border-gray-100">⚠️ {t('content_area_warning')}</p>
+                </div>
+             </div>
+        </div>
+    );
+};
 
 interface PdfSelectProps extends ScreenProps { data: { type: 'digest' | 'note' }; }
 
 export const PdfSelectScreen: React.FC<PdfSelectProps> = ({ changeScreen, t, data }) => {
+    // BUG FIX: data might be null.
+    if (!data) return null;
+
     const isDigest = data.type === 'digest';
     const items = isDigest ? digestNotes : pdfNotes;
     const title = isDigest ? t('digest_select_title') : t('pdf_select_title');
@@ -798,9 +806,14 @@ export const PdfViewerScreen: React.FC<PdfViewerProps> = ({ data, changeScreen, 
     const [zoom, setZoom] = useState(100);
 
     const item = useMemo(() => {
+        // BUG FIX: Guard against null data prop
+        if (!data) return undefined;
         const sourceArray = data.type === 'digest' ? digestNotes : pdfNotes;
         return sourceArray.find(i => i.id === data.id);
-    }, [data.id, data.type]);
+    }, [data]);
+
+    // Guard against missing data/item
+    if (!data) return null;
 
     const backScreen = Screen.PdfSelect;
     const backScreenData = { type: data.type };

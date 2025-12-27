@@ -1,8 +1,7 @@
-
 import React, { useState, useEffect } from 'react';
 import { Theme, UserProfile } from '../types';
 import { SunIcon, MoonIcon, MenuIcon, UserIcon, FeedbackIcon, SuccessIcon, InfoIcon } from './Icons';
-import { escapeHTML } from '../constants';
+// escapeHTML removed as React handles text safety automatically in JSX
 
 type TFunction = (key: string) => string;
 
@@ -134,19 +133,19 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose, t, 
                 <div className="space-y-3">
                     <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg dark:bg-gray-700">
                         <span className="text-gray-600 dark:text-gray-400 font-medium">{t('profile_name')}:</span>
-                        <span className="text-gray-900 dark:text-gray-100 font-semibold text-right break-words max-w-[60%]">{escapeHTML(profile?.username)}</span>
+                        <span className="text-gray-900 dark:text-gray-100 font-semibold text-right break-words max-w-[60%]">{profile?.username}</span>
                     </div>
                     <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg dark:bg-gray-700">
                         <span className="text-gray-600 dark:text-gray-400 font-medium">{t('profile_school')}:</span>
-                        <span className="text-gray-900 dark:text-gray-100 font-semibold text-right break-words max-w-[60%]">{escapeHTML(profile?.school)}</span>
+                        <span className="text-gray-900 dark:text-gray-100 font-semibold text-right break-words max-w-[60%]">{profile?.school}</span>
                     </div>
                     <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg dark:bg-gray-700">
                         <span className="text-gray-600 dark:text-gray-400 font-medium">{t('profile_standard')}:</span>
-                        <span className="text-gray-900 dark:text-gray-100 font-semibold">{escapeHTML(profile?.standard)}</span>
+                        <span className="text-gray-900 dark:text-gray-100 font-semibold">{profile?.standard}</span>
                     </div>
                     <div className="p-3 bg-gray-50 rounded-lg dark:bg-gray-700">
                         <span className="text-gray-600 dark:text-gray-400 font-medium">User ID:</span>
-                        <p className="text-xs font-mono text-blue-500 dark:text-blue-400 break-all mt-1">{escapeHTML(userId)}</p>
+                        <p className="text-xs font-mono text-blue-500 dark:text-blue-400 break-all mt-1">{userId}</p>
                     </div>
                 </div>
 
