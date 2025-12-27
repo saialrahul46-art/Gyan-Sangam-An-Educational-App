@@ -1,3 +1,4 @@
+
 import React from 'react';
 
 declare module 'react' {
@@ -14,10 +15,13 @@ declare module 'react' {
 }
 
 declare global {
-    // Augment NodeJS ProcessEnv to include API_KEY if process exists
+    // Augment NodeJS namespace to include API_KEY in ProcessEnv.
+    // We removed the manual 'var process' declaration because it was causing a "Cannot redeclare block-scoped variable" error,
+    // implying 'process' is already declared in the environment (e.g., by @types/node or other libs).
     namespace NodeJS {
         interface ProcessEnv {
             API_KEY?: string;
+            [key: string]: any;
         }
     }
 
