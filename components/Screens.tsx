@@ -34,8 +34,8 @@ export const LanguageSelectScreen: React.FC<LanguageSelectProps> = ({ onConfirm,
     const allLanguages = [
         { code: 'en', name: 'English', char: 'Aa' }, { code: 'hi', name: 'हिन्दी', char: 'अ' },
         { code: 'mr', name: 'मराठी', char: 'म' }, { code: 'gu', name: 'ગુજરાતી', char: 'અ' },
-        { code: 'kn', name: 'ಕನ್ನಡ', char: 'ಕ' }, { code: 'bn', name: 'বাংলা', char: 'আ' },
-        { code: 'te', name: 'తెలుగు', char: 'అ' }, { code: 'ml', name: 'മലയാളം', char: 'മ' },
+        { code: 'kn', name: 'ಕನ್ನಡ', char: 'ಕ' }, { code: 'bn', name: 'বাংলা', char: 'आ' },
+        { code: 'te', name: 'తెలుగు', char: 'అ' }, { code: 'ml', name: 'മലയാളം', char: 'म' },
         { code: 'ur', name: 'اردو', char: 'ا' },
     ];
     
@@ -631,7 +631,7 @@ export const AITranslatorScreen: React.FC<ScreenProps> = ({ changeScreen, t }) =
 
             {/* History Modal */}
             <Modal isOpen={isHistoryOpen}>
-                <div className="bg-white p-6 rounded-xl shadow-2xl m-4 w-11/12 max-w-sm dark:bg-gray-800 transition-colors duration-300 flex flex-col max-h-[80vh]">
+                <div className="bg-white p-6 rounded-xl shadow-2xl m-4 w-11/12 max-sm dark:bg-gray-800 transition-colors duration-300 flex flex-col max-h-[80vh]">
                      <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-4 flex items-center justify-center gap-2">
                         <HistoryIcon className="w-5 h-5" /> {t('history_title')}
                      </h2>
@@ -679,11 +679,11 @@ export const AITranslatorScreen: React.FC<ScreenProps> = ({ changeScreen, t }) =
 interface NotesListProps extends ScreenProps { data: { subject: string }; }
 
 export const NotesListScreen: React.FC<NotesListProps> = ({ changeScreen, t, data, lang }) => {
-    // BUG FIX: data might be null due to race condition or improper navigation state.
+    // Safety check for navigation state
     if (!data) return null;
     
     const subject = data.subject;
-    // Enhanced localization: Show Hindi name if lang is 'hi' OR 'mr' (Marathi uses same script/names often for these subjects)
+    // Enhanced localization: Show Hindi name if lang is 'hi' OR 'mr'
     const subjectName = (lang === 'hi' || lang === 'mr') ? subjects[subject] : subject;
 
     const handleKavitaClick = (kavita: Kavita) => {
@@ -730,11 +730,11 @@ export const NotesListScreen: React.FC<NotesListProps> = ({ changeScreen, t, dat
 interface ContentViewerProps extends ScreenProps { data: { content: Content, subject: string }; }
 
 export const ContentViewerScreen: React.FC<ContentViewerProps> = ({ changeScreen, t, data }) => {
-    // BUG FIX: Ensure data and content exist before rendering.
+    // Safety check for navigation state
     if (!data || !data.content) return null;
     
     return (
-        <div className="w-full flex-grow flex flex-col bg-gray-50 text-gray-900"> {/* Force Light BG */}
+        <div className="w-full flex-grow flex flex-col bg-gray-50 text-gray-900">
              <div className="p-4 flex-shrink-0">
                 <button onClick={() => changeScreen(Screen.NotesList, { subject: data.subject })} aria-label="Go back" className="mb-4 text-blue-600 hover:text-blue-800 font-semibold flex items-center self-start">
                     <BackIcon /> {t('back')}
@@ -754,7 +754,7 @@ export const ContentViewerScreen: React.FC<ContentViewerProps> = ({ changeScreen
 interface PdfSelectProps extends ScreenProps { data: { type: 'digest' | 'note' }; }
 
 export const PdfSelectScreen: React.FC<PdfSelectProps> = ({ changeScreen, t, data }) => {
-    // BUG FIX: data might be null.
+    // Safety check for navigation state
     if (!data) return null;
 
     const isDigest = data.type === 'digest';
@@ -770,7 +770,6 @@ export const PdfSelectScreen: React.FC<PdfSelectProps> = ({ changeScreen, t, dat
             </h2>
             <div className="space-y-4">
                 {items.map(item => {
-                    // Find appropriate emoji regardless of case
                     const emojiKey = Object.keys(subjectEmojis).find(k => item.subject.toLowerCase().includes(k.toLowerCase()));
                     const emoji = emojiKey ? subjectEmojis[emojiKey] : (isDigest ? '📒' : '📄');
 
@@ -803,43 +802,119 @@ interface PdfViewerProps {
 export const PdfViewerScreen: React.FC<PdfViewerProps> = ({ data, changeScreen, t }) => {
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
-    const [zoom, setZoom] = useState(100);
+    
+    // Gesture States
+    const [scale, setScale] = useState(1);
+    const [translateX, setTranslateX] = useState(0);
+    const [translateY, setTranslateY] = useState(0);
+    
+    // Gesture Refs
+    const containerRef = useRef<HTMLDivElement>(null);
+    const initialDistanceRef = useRef<number | null>(null);
+    const initialScaleRef = useRef<number>(1);
+    const lastTouchRef = useRef<{ x: number, y: number } | null>(null);
+    const lastTapRef = useRef<number>(0);
 
     const item = useMemo(() => {
-        // BUG FIX: Guard against null data prop
         if (!data) return undefined;
         const sourceArray = data.type === 'digest' ? digestNotes : pdfNotes;
         return sourceArray.find(i => i.id === data.id);
     }, [data]);
 
-    // Guard against missing data/item
-    if (!data) return null;
-
-    const backScreen = Screen.PdfSelect;
-    const backScreenData = { type: data.type };
-
-    const handleZoomIn = () => setZoom(prev => Math.min(prev + 25, 300));
-    const handleZoomOut = () => setZoom(prev => Math.max(prev - 25, 100));
-
-    // Fix: Add timeout to prevent infinite loading state if iframe load event doesn't fire (e.g. about:blank)
     useEffect(() => {
         if (isLoading) {
-            const timer = setTimeout(() => {
-                setIsLoading(false);
-            }, 3000); // 3 second fallback
+            const timer = setTimeout(() => setIsLoading(false), 3000);
             return () => clearTimeout(timer);
         }
     }, [isLoading]);
 
-    if (!item) {
+    const handleZoomIn = () => setScale(prev => Math.min(prev + 0.5, 5));
+    const handleZoomOut = () => {
+        setScale(prev => {
+            const next = Math.max(prev - 0.5, 1);
+            if (next === 1) {
+                setTranslateX(0);
+                setTranslateY(0);
+            }
+            return next;
+        });
+    };
+
+    const handleReset = () => {
+        setScale(1);
+        setTranslateX(0);
+        setTranslateY(0);
+    };
+
+    // --- Gesture Logic ---
+
+    const handleTouchStart = (e: React.TouchEvent) => {
+        const now = Date.now();
+        if (now - lastTapRef.current < 300) {
+            handleReset();
+            lastTapRef.current = 0;
+            return;
+        }
+        lastTapRef.current = now;
+
+        if (e.touches.length === 2) {
+            const dist = Math.hypot(
+                e.touches[0].pageX - e.touches[1].pageX,
+                e.touches[0].pageY - e.touches[1].pageY
+            );
+            initialDistanceRef.current = dist;
+            initialScaleRef.current = scale;
+        } else if (e.touches.length === 1) {
+            lastTouchRef.current = { x: e.touches[0].pageX, y: e.touches[0].pageY };
+        }
+    };
+
+    const handleTouchMove = (e: React.TouchEvent) => {
+        if (e.touches.length > 1 || scale > 1) {
+            // Prevent browser overscroll/scroll when interacting with PDF
+            e.preventDefault();
+        }
+
+        if (e.touches.length === 2 && initialDistanceRef.current !== null) {
+            // Pinch to Zoom
+            const dist = Math.hypot(
+                e.touches[0].pageX - e.touches[1].pageX,
+                e.touches[0].pageY - e.touches[1].pageY
+            );
+            const delta = dist / initialDistanceRef.current;
+            const newScale = Math.max(1, Math.min(initialScaleRef.current * delta, 5));
+            setScale(newScale);
+            
+            if (newScale === 1) {
+                setTranslateX(0);
+                setTranslateY(0);
+            }
+        } else if (e.touches.length === 1 && lastTouchRef.current && scale > 1) {
+            // Pan document
+            const deltaX = e.touches[0].pageX - lastTouchRef.current.x;
+            const deltaY = e.touches[0].pageY - lastTouchRef.current.y;
+            
+            setTranslateX(prev => prev + deltaX);
+            setTranslateY(prev => prev + deltaY);
+            
+            lastTouchRef.current = { x: e.touches[0].pageX, y: e.touches[0].pageY };
+        }
+    };
+
+    const handleTouchEnd = () => {
+        initialDistanceRef.current = null;
+        lastTouchRef.current = null;
+    };
+
+    if (!data || !item) {
         return (
             <div className="w-full flex-grow flex flex-col bg-white text-gray-900 h-full">
                 <header className="w-full bg-gray-800 text-white p-3 flex justify-between items-center shadow-md flex-shrink-0">
-                    <button onClick={() => changeScreen(backScreen, backScreenData)} aria-label="Go back" className="text-white hover:text-gray-200 font-semibold flex items-center text-sm"><BackIcon /> {t('back')}</button>
+                    <button onClick={() => changeScreen(Screen.PdfSelect, { type: data?.type })} className="text-white hover:text-gray-200 font-semibold flex items-center text-sm"><BackIcon /> {t('back')}</button>
                     <h2 className="text-lg font-bold">Error</h2>
                     <div className="w-20"></div>
                 </header>
-                <div className="flex-grow flex items-center justify-center text-red-600">{error}</div>
+                <div className="flex-grow flex items-center justify-center text-red-600">Item not found</div>
             </div>
         );
     }
@@ -847,50 +922,57 @@ export const PdfViewerScreen: React.FC<PdfViewerProps> = ({ data, changeScreen, 
     const headerColor = data.type === 'digest' ? 'bg-yellow-700' : 'bg-red-700';
 
     return (
-        <div className="w-full flex-grow flex flex-col bg-gray-100 text-gray-900 overflow-hidden h-full relative">
+        <div className="w-full flex-grow flex flex-col bg-gray-100 text-gray-900 overflow-hidden h-full relative no-select">
             <header className={`w-full ${headerColor} text-white p-3 flex justify-between items-center shadow-md flex-shrink-0 z-20`}>
-                <button onClick={() => changeScreen(backScreen, backScreenData)} aria-label="Go back" className="text-white hover:text-gray-200 font-semibold flex items-center text-sm"><BackIcon /> {t('back')}</button>
+                <button onClick={() => changeScreen(Screen.PdfSelect, { type: data.type })} aria-label="Go back" className="text-white hover:text-gray-200 font-semibold flex items-center text-sm"><BackIcon /> {t('back')}</button>
                 <h2 className="text-lg font-bold truncate max-w-[60%] text-center mx-2 flex items-center justify-center gap-2">📄 {item.subject}</h2>
                 <div className="flex items-center gap-2">
-                     <button 
-                        onClick={handleZoomOut}
-                        disabled={zoom <= 100}
-                        aria-label="Zoom Out"
-                        className="text-white hover:text-gray-300 transition-colors disabled:opacity-50 p-1"
-                    >
+                     <button onClick={handleZoomOut} disabled={scale <= 1} className="text-white hover:text-gray-300 transition-colors disabled:opacity-50 p-1">
                         <ZoomOutIcon className="h-6 w-6" />
                     </button>
-                    <button 
-                        onClick={handleZoomIn}
-                        disabled={zoom >= 300}
-                        aria-label="Zoom In"
-                        className="text-white hover:text-gray-300 transition-colors disabled:opacity-50 p-1"
-                    >
+                    <button onClick={handleZoomIn} disabled={scale >= 5} className="text-white hover:text-gray-300 transition-colors disabled:opacity-50 p-1">
                         <ZoomInIcon className="h-6 w-6" />
                     </button>
                 </div>
             </header>
             
-            <div className="flex-grow relative w-full bg-white z-10">
-                 <div className="absolute inset-0 overflow-auto custom-scroll">
+            <div 
+                ref={containerRef}
+                className="flex-grow relative w-full bg-black z-10 touch-none overflow-hidden"
+                onTouchStart={handleTouchStart}
+                onTouchMove={handleTouchMove}
+                onTouchEnd={handleTouchEnd}
+            >
+                 <div 
+                    className="absolute inset-0 transition-transform duration-75 ease-out"
+                    style={{ 
+                        transform: `translate3d(${translateX}px, ${translateY}px, 0) scale(${scale})`,
+                        transformOrigin: 'center center'
+                    }}
+                 >
                     {isLoading && (
                          <div className="absolute inset-0 flex flex-col justify-center items-center z-30 bg-white">
                             <dotlottie-wc src="https://lottie.host/5b0e3f12-e11c-4216-9d01-a431604ce539/r8437WbDKT.lottie" style={{ width: '150px', height: '150px' }} autoplay loop></dotlottie-wc>
-                            <p className="text-gray-600 mt-4">{t('pdf_viewer_title')} {t('loading_msg')}</p>
+                            <p className="text-gray-600 mt-4 font-medium">{t('pdf_viewer_title')} {t('loading_msg')}</p>
                         </div>
                     )}
                     {error && <div className="absolute inset-0 flex items-center justify-center text-red-600 bg-white px-4 text-center z-30">{error}</div>}
                     
                     <iframe
                         src={item.url}
-                        style={{ width: `${zoom}%`, minWidth: '100%', height: '100%', display: 'block', border: 'none' }}
+                        style={{ width: '100%', height: '100%', display: 'block', border: 'none' }}
                         title="PDF Viewer"
-                        className={`block transition-opacity duration-300 ${isLoading || error ? 'opacity-0' : 'opacity-100'}`}
+                        className={`block w-full h-full transition-opacity duration-300 ${isLoading || error ? 'opacity-0' : 'opacity-100'}`}
                         allow="autoplay; encrypted-media"
                         onLoad={() => setIsLoading(false)}
                     ></iframe>
                  </div>
             </div>
+            {scale > 1 && (
+                <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-30 bg-black/60 backdrop-blur-md text-white px-4 py-2 rounded-full text-xs font-bold pointer-events-none animate-fade-in border border-white/20">
+                   {Math.round(scale * 100)}% • Double tap to reset
+                </div>
+            )}
         </div>
     );
 };

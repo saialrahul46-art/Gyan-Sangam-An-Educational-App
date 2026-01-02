@@ -48,9 +48,12 @@ export const digestNotes = [
 ];
 
 export const pdfNotes = [
-  { id: 102, subject: 'P.T BOOK SOLUTIONS', description: 'The complete PDF of important notes related to P.T Book Solutions.', url: 'https://drive.google.com/file/d/10Ad_D5_HvHZbhfM9VuNF33z3bEOqKCjl/preview?rm=minimal' },
+  { id: 105, subject: 'WATER SECURITY FULL BOOK WITH SOLUTION', description: 'Complete book with solutions for Water Security.', url: 'https://drive.google.com/file/d/1wUiy_CLco6yE_aBofpmjPXGQcdvdpGto/preview?rm=minimal' },
   { id: 103, subject: 'DEFENCE STUDIES FULL BOOK WITH SOLUTION', description: 'Complete book with solutions for Defence Studies.', url: 'https://drive.google.com/file/d/1_EBrqYFEk8W8V05fXX9wejbGvVi_cGWb/preview?rm=minimal' },
-  { id: 104, subject: 'MATHS PRACTICAL FULL BOOK WITH SOLUTION', description: 'Complete practical book with solutions for Mathematics.', url: 'https://drive.google.com/file/d/1Rw32CtK2z7isqd9Wy5Sh3pDGm3FcaAU8/preview?rm=minimal' }
+  { id: 104, subject: 'MATHS PRACTICAL FULL BOOK WITH SOLUTION', description: 'Complete practical book with solutions for Mathematics.', url: 'https://drive.google.com/file/d/1Rw32CtK2z7isqd9Wy5Sh3pDGm3FcaAU8/preview?rm=minimal' },
+  { id: 106, subject: 'SCI PRATICAL FULL BOOK WITH SOLUTION', description: 'Complete practical book with solutions for Science.', url: 'https://drive.google.com/file/d/1PTZRZpv-AjbETq5t5LSAIQWApQD7O0-A/preview?rm=minimal' },
+  { id: 102, subject: 'P.T BOOK SOLUTIONS', description: 'The complete PDF of important notes related to P.T Book Solutions.', url: 'https://drive.google.com/file/d/10Ad_D5_HvHZbhfM9VuNF33z3bEOqKCjl/preview?rm=minimal' },
+  { id: 107, subject: 'VIKAS FINDING LOCATION FULL BOOK WITH SOLUTION', description: 'Complete book with solutions for Vikas Finding Location.', url: 'https://drive.google.com/file/d/1thjEinJZNQ7_hoNs9dTFarlUZUXI0rpL/preview?rm=minimal' }
 ];
 
 export const kavitas = [
@@ -299,7 +302,7 @@ export const translations: { [lang: string]: { [key: string]: string } } = {
       graded_notes: 'श्रेणीकृत नोट्स',
       graded_notes_desc: 'इयत्तेनुसार आयोजित नोट्स.',
       view_pdf_notes: 'PDF नोट्स पहा',
-      download_warning: 'डाउनलोड अक्षम आहे.',
+      download_warning: 'डाउनलोड अक्षम है.',
       ai_title: 'AI अनुवादक',
       ai_source: 'पासून',
       ai_target: 'कडे',

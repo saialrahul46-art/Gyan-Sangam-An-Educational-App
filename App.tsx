@@ -195,6 +195,13 @@ export default function App() {
 
     // --- Async Initialization (Firebase & Background Sync) ---
     useEffect(() => {
+        // Remove Initial Loader from DOM
+        const initialLoader = document.getElementById('initial-loader');
+        if (initialLoader) {
+            initialLoader.style.opacity = '0';
+            setTimeout(() => initialLoader.remove(), 500);
+        }
+
         // App Opens Counter
         const storedOpens = localStorage.getItem('app_opens');
         const count = storedOpens ? parseInt(storedOpens, 10) : 0;
