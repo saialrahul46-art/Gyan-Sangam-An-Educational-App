@@ -1,8 +1,19 @@
 import { GoogleGenAI } from "@google/genai";
 import { indianLanguages } from '../constants';
 
-// The API key must be obtained exclusively from the environment variable process.env.API_KEY.
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+// The API key must be obtained exclusively from the environment variable process.env.GEMINI_API_KEY.
+let aiClient: GoogleGenAI | null = null;
+
+function getAiClient(): GoogleGenAI {
+  if (!aiClient) {
+    const apiKey = process.env.GEMINI_API_KEY;
+    if (!apiKey) {
+      console.error("GEMINI_API_KEY is not set.");
+    }
+    aiClient = new GoogleGenAI({ apiKey: apiKey || '' });
+  }
+  return aiClient;
+}
 
 export const translateText = async (
   text: string,
@@ -16,6 +27,7 @@ export const translateText = async (
   const userQuery = `Translate: "${text}"`;
 
   try {
+    const ai = getAiClient();
     const response = await ai.models.generateContent({
       model: 'gemini-3-flash-preview',
       contents: userQuery,

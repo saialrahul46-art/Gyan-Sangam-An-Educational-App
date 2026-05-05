@@ -15,7 +15,8 @@ export default defineConfig(({ mode }) => {
     },
     define: {
       // Stringify the API key to ensure it's treated as a string value in the bundled code
-      'process.env.API_KEY': JSON.stringify(env.API_KEY || process.env.API_KEY)
+      'process.env.API_KEY': JSON.stringify(env.API_KEY || process.env.API_KEY),
+      'process.env.GEMINI_API_KEY': JSON.stringify(env.GEMINI_API_KEY || process.env.GEMINI_API_KEY)
     }
   };
 });

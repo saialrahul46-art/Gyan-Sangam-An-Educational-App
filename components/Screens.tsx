@@ -12,7 +12,7 @@ import {
     getLanguageDisplayName,
 } from '../constants';
 import { translateText } from '../services/geminiService';
-import { BackIcon, ClearIcon, SwapIcon, UserIcon, SchoolIcon, GraduationCapIcon, CheckIcon, RocketIcon, SuccessIcon, MoonIcon, SunIcon, ZoomInIcon, ZoomOutIcon, DeviceIcon, HistoryIcon, TrashIcon } from './Icons';
+import { BackIcon, ClearIcon, SwapIcon, UserIcon, SchoolIcon, GraduationCapIcon, CheckIcon, RocketIcon, SuccessIcon, MoonIcon, SunIcon, ZoomInIcon, ZoomOutIcon, DeviceIcon, HistoryIcon, TrashIcon, MenuIcon, FeedbackIcon } from './Icons';
 import { Modal } from './UI';
 
 type TFunction = (key: string) => string;
@@ -304,7 +304,7 @@ export const OnboardingScreen: React.FC<OnboardingProps> = ({ onComplete, t, cha
 };
 
 // Props extended to include appOpens, theme toggling, and Simple Mode handler
-export const HomeScreen: React.FC<ScreenProps & { username: string | null, appOpens: number, theme: string, toggleTheme: () => void, onSimpleModeClick: () => void }> = ({ changeScreen, t, username, appOpens, theme, toggleTheme, onSimpleModeClick }) => {
+export const HomeScreen: React.FC<ScreenProps & { username: string | null, appOpens: number, theme: string, toggleTheme: () => void, onSimpleModeClick: () => void, onMenuClick: () => void, onFeedbackClick: () => void }> = ({ changeScreen, t, username, appOpens, theme, toggleTheme, onSimpleModeClick, onMenuClick, onFeedbackClick }) => {
     const [showDarkPrompt, setShowDarkPrompt] = useState(false);
 
     useEffect(() => {
@@ -320,34 +320,39 @@ export const HomeScreen: React.FC<ScreenProps & { username: string | null, appOp
         <div className="text-center p-4 flex-grow flex flex-col justify-start pt-6">
             <p className="text-lg text-gray-700 dark:text-gray-300 mb-8 font-medium">👋 {t('welcome_msg')} <span className="font-bold text-blue-600 dark:text-blue-400 break-words">{username || 'User'}</span></p>
             <h2 className="text-2xl font-semibold text-gray-800 dark:text-gray-200 mb-6">✨ {t('choose_mode')}</h2>
-            <div className="space-y-4">
-                <button onClick={() => changeScreen(Screen.ExtraMode)} className="w-full p-4 bg-green-500 hover:bg-green-600 text-white font-bold text-xl rounded-xl transition duration-300 shadow-lg transform hover:scale-[1.02] active:scale-[0.98]">
-                    <div className="flex flex-row items-center text-left">
-                        <span className="text-4xl mr-4 bg-white/20 rounded-full p-2">🎒</span>
+            
+            <div className="space-y-6 flex-grow flex flex-col">
+                {/* Top: AI Translator */}
+                <button onClick={() => changeScreen(Screen.AITranslator)} className="w-full p-6 bg-purple-600 hover:bg-purple-700 text-white font-bold text-xl rounded-xl transition duration-300 shadow-lg transform hover:scale-[1.02] active:scale-[0.98]">
+                    <div className="flex flex-col items-center text-center">
+                        <span className="text-4xl mb-3 bg-white/20 rounded-full p-4">🧠</span>
                         <div>
-                             <div className="font-bold text-xl">{t('extra_mode')}</div>
-                             <p className="text-sm font-normal mt-1 opacity-90">{t('extra_mode_desc')}</p>
+                             <div className="font-bold text-2xl">{t('ai_translator_mode')}</div>
+                             <p className="text-sm font-normal mt-2 opacity-90">{t('ai_translator_desc')}</p>
                         </div>
                     </div>
                 </button>
-                <button onClick={onSimpleModeClick} className="w-full p-4 bg-indigo-500 hover:bg-indigo-600 text-white font-bold text-xl rounded-xl transition duration-300 shadow-lg transform hover:scale-[1.02] active:scale-[0.98]">
-                    <div className="flex flex-row items-center text-left">
-                        <span className="text-4xl mr-4 bg-white/20 rounded-full p-2">📚</span>
-                        <div>
-                             <div className="font-bold text-xl">{t('simple_mode')}</div>
-                             <p className="text-sm font-normal mt-1 opacity-90">{t('simple_mode_desc')}</p>
-                        </div>
-                    </div>
-                </button>
-                <button onClick={() => changeScreen(Screen.AITranslator)} className="w-full p-4 bg-purple-600 hover:bg-purple-700 text-white font-bold text-xl rounded-xl transition duration-300 shadow-lg transform hover:scale-[1.02] active:scale-[0.98]">
-                    <div className="flex flex-row items-center text-left">
-                        <span className="text-4xl mr-4 bg-white/20 rounded-full p-2">🧠</span>
-                        <div>
-                             <div className="font-bold text-xl">{t('ai_translator_mode')}</div>
-                             <p className="text-sm font-normal mt-1 opacity-90">{t('ai_translator_desc')}</p>
-                        </div>
-                    </div>
-                </button>
+
+                {/* Middle Row: Left/Center/Right */}
+                <div className="flex items-stretch justify-between gap-4 h-36">
+                    {/* Left: Simple Mode */}
+                    <button onClick={onSimpleModeClick} className="flex-1 p-3 bg-indigo-500 hover:bg-indigo-600 text-white rounded-xl transition duration-300 shadow-lg transform hover:scale-[1.02] active:scale-[0.98] flex flex-col items-center justify-center text-center">
+                        <span className="text-3xl mb-2 bg-white/20 rounded-full p-2">📚</span>
+                        <div className="font-bold text-sm sm:text-base leading-tight mt-1">{t('simple_mode')}</div>
+                    </button>
+
+                    {/* Center: Menu Bar */}
+                    <button onClick={onMenuClick} className="flex-shrink-0 w-20 flex flex-col items-center justify-center bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-xl transition duration-300 shadow-md transform hover:scale-[1.02] active:scale-[0.98] border border-gray-200 dark:border-gray-700">
+                        <MenuIcon className="h-8 w-8 text-gray-700 dark:text-gray-300 mb-1" />
+                        <span className="text-[10px] sm:text-xs font-bold text-gray-600 dark:text-gray-400 uppercase tracking-wider">Menu</span>
+                    </button>
+
+                    {/* Right: Extra Mode */}
+                    <button onClick={() => changeScreen(Screen.ExtraMode)} className="flex-1 p-3 bg-green-500 hover:bg-green-600 text-white rounded-xl transition duration-300 shadow-lg transform hover:scale-[1.02] active:scale-[0.98] flex flex-col items-center justify-center text-center">
+                        <span className="text-3xl mb-2 bg-white/20 rounded-full p-2">🎒</span>
+                        <div className="font-bold text-sm sm:text-base leading-tight mt-1">{t('extra_mode')}</div>
+                    </button>
+                </div>
             </div>
             
             {/* Notification to try Dark Mode */}
@@ -368,6 +373,14 @@ export const HomeScreen: React.FC<ScreenProps & { username: string | null, appOp
                     <span className="bg-indigo-600 px-3 py-1 rounded-full text-xs font-bold">Turn On</span>
                 </div>
             )}
+
+            {/* Bottom: Report Issue Button */}
+            <div className="mt-8 pt-4 border-t border-gray-200 dark:border-gray-700">
+                <button onClick={onFeedbackClick} className="w-full flex justify-center items-center gap-2 p-4 bg-red-50 hover:bg-red-100 text-red-600 dark:bg-red-900/20 dark:hover:bg-red-900/40 dark:text-red-400 font-bold rounded-xl transition duration-300 transform hover:-translate-y-1">
+                    <FeedbackIcon className="h-5 w-5" />
+                    {t('report_issue') || 'Report an Issue'}
+                </button>
+            </div>
         </div>
     );
 };

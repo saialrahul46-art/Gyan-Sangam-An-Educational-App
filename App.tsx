@@ -344,7 +344,7 @@ export default function App() {
         switch (screen) {
             case Screen.LanguageSelect: Component = <LanguageSelectScreen onConfirm={handleLanguageConfirm} userId={userId} changeScreen={changeScreen} />; break;
             case Screen.Onboarding: Component = <OnboardingScreen {...props} onComplete={handleOnboardingComplete} />; break;
-            case Screen.Home: Component = <HomeScreen {...props} username={userProfile?.username || null} appOpens={appOpens} theme={theme} toggleTheme={toggleTheme} onSimpleModeClick={handleSimpleModeClick} />; break;
+            case Screen.Home: Component = <HomeScreen {...props} username={userProfile?.username || null} appOpens={appOpens} theme={theme} toggleTheme={toggleTheme} onSimpleModeClick={handleSimpleModeClick} onMenuClick={() => setIsMenuOpen(true)} onFeedbackClick={() => setIsFeedbackModalOpen(true)} />; break;
             case Screen.ExtraMode: Component = <ExtraModeScreen {...props} />; break;
             case Screen.SimpleMode: Component = <SimpleModeScreen {...props} />; break;
             case Screen.AITranslator: Component = <AITranslatorScreen {...props} />; break;
@@ -380,7 +380,7 @@ export default function App() {
                 onSubmit={handleFeedbackSubmit}
             />
 
-            {showHeader && <Header t={t} showMenuButton={true} onMenuClick={() => setIsMenuOpen(prev => !prev)} />}
+            {showHeader && <Header t={t} showMenuButton={screen !== Screen.Home} onMenuClick={() => setIsMenuOpen(prev => !prev)} />}
             
             <MenuModal
                 t={t}
